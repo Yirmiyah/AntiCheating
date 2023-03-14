@@ -80,15 +80,15 @@ func SearchAll() {
 	// }
 	// codeNeeded := string(bText)
 
-	// Q := "printcombN"
+	Q := "Itoabase"
 
 	cmd := exec.Command("curl", "-L", "-H",
 		"Accept: application/vnd.github.text-match+json",
 		"-H",
-		"Authorization: Bearer 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",
+		"Authorization: Bearer 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",
 		"-H",
 		"X-GitHub-Api-Version: 2022-11-28",
-		"https://api.github.com/search/code?q="+CountCharacters(FILEPATH)+"+in:file+language:go",
+		"https://api.github.com/search/code?q="+Q+"+in:file+language:golang",
 	)
 
 	result, err := cmd.Output()
@@ -96,24 +96,37 @@ func SearchAll() {
 		log.Fatal(err)
 	}
 
+	fmt.Printf("string(result): %v\n", string(result))
+
 	var jsonU DataReceived
 	err = json.Unmarshal(result, &jsonU)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fragment := ""
+	var fragment []string
+	var longest string
 	ghSearchContent := ""
 
 	for _, v := range jsonU.Items {
-		for _, e := range v.TextMatches {
+		for i, e := range v.TextMatches {
 
-			fragment = e.Fragment
+			fragment = append(fragment, v.TextMatches[i].Fragment)
+			longest = v.TextMatches[0].Fragment
+
 			ghSearchContent = e.ObjectURL
 
 		}
 	}
 
+	for i := 0; i < len(fragment); i++ {
+
+		if len(fragment[i]) >= len(longest) {
+			longest = fragment[i]
+		}
+	}
+
+	fmt.Printf("longest: %v\n", longest)
 	fmt.Printf("fragment: %v\n", fragment)
 	responseFromGH, err := http.Get(ghSearchContent)
 	if err != nil {
